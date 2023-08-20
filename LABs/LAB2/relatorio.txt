@@ -1,0 +1,47 @@
+Dúvidas:
+	- Como funciona o ponteiro? Ele aponta para o primeiro indice da memoria que contem o elemento?
+
+
+Exercícios:
+	ex1-a) O programa printa na tela o endereço de memoria de cada byte seguido do seu conteúdo, que é o valor em hexadecimal.
+		O tamanho em bytes de um inteiro é 4bytes.
+		Os bytes estão ordenados por índices na memória (Não tenho certeza)
+
+	ex2-a) string2num converte uma string em um valor inteiro. o valor de (*s -'0') é o valor de inteiro de um caractere numérico. O valor de 'a' serve para ser atualizao a cada iteração sendo multiplicado por 10 e assim contruindo a representação da string como inteiro.
+
+	ex2-b)Adicionei a funcao charToValue para converter o char numerico para seu valor numerico no formato inteiro:
+
+			int charToValue(char c){
+				if (isdigit(c))
+    					return c - '0';
+				else
+    					return -1; // Caractere inválido
+				}
+		
+		Em seguida, alterei a string2num para receber o parametro int base e converter a string para o valor numerico de acordo com a base passada pelo usuário:
+
+int string2num(char *s, int base) {
+  int a = 0;
+  for (; *s; s++) {
+    int value = charToValue(*s);
+    if (value >= 0 && value < base) {
+      a = a * base + value;
+    } else {
+      // Caractere inválido para a base
+      return -1;
+    }
+  }
+  return a;
+}
+
+
+	ex2-c) Para esse alterei a funcao charToValue para converter caractere em se respectivo valor númerico no formato inteiro usando isalpha 
+
+int charToValue(char c) {
+  if (isdigit(c))
+    return c - '0';
+  else if (isalpha(c))
+    return toupper(c) - 'A' + 10;
+  else
+    return -1; // Caractere inválido
+}
