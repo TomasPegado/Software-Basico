@@ -1,12 +1,13 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include "converte.h"
 
-void testLeitura(FILE *arq){
+void testeFuncao(FILE *arq){
 
     FILE *saida = fopen("saida.txt", "w");
     int t = utf2varint(arq, saida);
     if (t==0){
-        printf("teste passou\n%d",t);
+        printf("teste passou\n");
     } else {
         fprintf(stderr, "Teste Falhou\n");
     }
@@ -14,7 +15,7 @@ void testLeitura(FILE *arq){
 
 int main(void){
 
-    FILE *arq = fopen("utf8_peq.txt", "rb");
-    testLeitura(arq);
+    FILE *arq = fopen("utf8_peq.txt", "r");
+    testeFuncao(arq);
     return 0;
 }
