@@ -1,3 +1,9 @@
+/* 
+Integrantes
+Nome: Tomás Lenzi, Matricula: 2220711, Turma: 3WA
+Nome: Gabriel Emile, Matricula: 2220498, Turma: 3WB
+*/
+
 #include <stdio.h>
 #include <stdbool.h>
 
@@ -85,12 +91,6 @@ int utf2varint(FILE *arq_entrada, FILE *arq_saida){
         // Escreve a codificação varint no arquivo de saída
         fwrite(varint_buffer, sizeof(unsigned char), varint_length, arq_saida);
 
-        // Continua imprimindo o codepoint e a codificação varint para a tela (pode ser removido se não for mais necessário)
-        // printf("Codepoint: U+%04X - Varint: ", codepoint);
-        // for (int i = 0; i < varint_length; i++) {
-        //     printf("%02X ", varint_buffer[i]);
-        // }
-        // printf("\n");
     }
 
     if (ferror(arq_entrada)) {
