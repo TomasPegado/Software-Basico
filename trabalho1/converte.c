@@ -17,6 +17,26 @@ int utf8_char_length(unsigned char ch) {
     return 0;  // Não é um byte inicial válido para UTF-8
 }
 
+// Função para converter um caractere UTF-8 em seu codepoint Unicode
+unsigned int utf8_to_codepoint(unsigned char *bytes, int length) {
+    if (length == 1) {
+        return bytes[0];
+    } else if (length == 2) {
+        return ((bytes[0] & 0x1F) << 6) |
+               (bytes[1] & 0x3F);
+    } else if (length == 3) {
+        return ((bytes[0] & 0x0F) << 12) |
+               ((bytes[1] & 0x3F) << 6)  |
+               (bytes[2] & 0x3F);
+    } else if (length == 4) {
+        return ((bytes[0] & 0x07) << 18) |
+               ((bytes[1] & 0x3F) << 12) |
+               ((bytes[2] & 0x3F) << 6)  |
+               (bytes[3] & 0x3F);
+    }
+    return 0;  // valor inválido
+}
+
 int utf2varint(FILE *arq_entrada, FILE *arq_saida){
     // char linha[1024]; // Buffer para armazenar cada linha lida
 
@@ -31,6 +51,7 @@ int utf2varint(FILE *arq_entrada, FILE *arq_saida){
     //     return -1; // Retorno de erro
     // }
 
+    unsigned char bytes[4];
     int ch;
     while ((ch = fgetc(arq_entrada)) != EOF) {
         int length = utf8_char_length(ch);
@@ -39,22 +60,18 @@ int utf2varint(FILE *arq_entrada, FILE *arq_saida){
             return -1;
         }
 
-        // Imprima o caractere em binário
-        printf("0x%x - ", ch);
-        printBinary(ch);
-
-        // Leia e imprima os bytes restantes deste caractere, se houver
+        bytes[0] = ch;
         for (int i = 1; i < length; i++) {
             ch = fgetc(arq_entrada);
             if (ch == EOF) {
                 fprintf(stderr, "EOF inesperado durante a leitura de um caractere UTF-8.\n");
                 return -1;
             }
-            printf(" ");
-            printBinary(ch);
+            bytes[i] = ch;
         }
 
-        printf("\n");
+        unsigned int codepoint = utf8_to_codepoint(bytes, length);
+        printf("Codepoint: U+%04X\n", codepoint);
     }
 
     if (ferror(arq_entrada)) {
