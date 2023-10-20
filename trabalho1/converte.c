@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+// ********* UTF8 para Varint ********* //
+
 // Função auxiliar para imprimir a representação binária de um byte
 void printBinary(unsigned char ch) {
     for (int i = 7; i >= 0; i--) {
@@ -84,11 +86,11 @@ int utf2varint(FILE *arq_entrada, FILE *arq_saida){
         fwrite(varint_buffer, sizeof(unsigned char), varint_length, arq_saida);
 
         // Continua imprimindo o codepoint e a codificação varint para a tela (pode ser removido se não for mais necessário)
-        printf("Codepoint: U+%04X - Varint: ", codepoint);
-        for (int i = 0; i < varint_length; i++) {
-            printf("%02X ", varint_buffer[i]);
-        }
-        printf("\n");
+        // printf("Codepoint: U+%04X - Varint: ", codepoint);
+        // for (int i = 0; i < varint_length; i++) {
+        //     printf("%02X ", varint_buffer[i]);
+        // }
+        // printf("\n");
     }
 
     if (ferror(arq_entrada)) {
@@ -102,6 +104,70 @@ int utf2varint(FILE *arq_entrada, FILE *arq_saida){
     return 0; // Sucesso
 }
 
+// ********* Varint pra UTF8 ********* //
+
+// Decodifica um varint e retorna o valor inteiro resultante
+unsigned int decode_varint(unsigned char *buffer, int length) {
+    unsigned int value = 0;
+    for (int i = 0; i < length; i++) {
+        value |= (buffer[i] & 0x7F) << (7 * i);
+    }
+    return value;
+}
+
+// Codifica um codepoint em UTF-8 e retorna o número de bytes escritos
+int codepoint_to_utf8(unsigned int codepoint, unsigned char *buffer) {
+    if (codepoint < 0x80) {
+        buffer[0] = codepoint;
+        return 1;
+    } else if (codepoint < 0x800) {
+        buffer[0] = 192 | (codepoint >> 6);
+        buffer[1] = 128 | (codepoint & 63);
+        return 2;
+    } else if (codepoint < 0x10000) {
+        buffer[0] = 224 | (codepoint >> 12);
+        buffer[1] = 128 | ((codepoint >> 6) & 63);
+        buffer[2] = 128 | (codepoint & 63);
+        return 3;
+    } else {
+        buffer[0] = 240 | (codepoint >> 18);
+        buffer[1] = 128 | ((codepoint >> 12) & 63);
+        buffer[2] = 128 | ((codepoint >> 6) & 63);
+        buffer[3] = 128 | (codepoint & 63);
+        return 4;
+    }
+}
+
 int varint2utf(FILE *arq_entrada, FILE *arq_saida){
+
+    unsigned char buffer[5];         // Para armazenar os bytes varint
+    unsigned char utf8_buffer[4];    // Para armazenar a representação UTF-8
+    int byte_count = 0;              // Contador de bytes do varint atual
+
+    while (true) {
+        int ch = fgetc(arq_entrada);
+        if (ch == EOF) break;
+
+        buffer[byte_count++] = (unsigned char)ch;
+
+        if (ch < 128) { // Detectou o final de uma sequência varint
+            unsigned int codepoint = decode_varint(buffer, byte_count);
+            int utf8_length = codepoint_to_utf8(codepoint, utf8_buffer);
+            fwrite(utf8_buffer, sizeof(unsigned char), utf8_length, arq_saida);
+            
+            // Reset para a próxima sequência varint
+            byte_count = 0;
+        }
+    }
+
+    if (ferror(arq_entrada)) {
+        fprintf(stderr, "Erro ao ler o arquivo.\n");
+        return -1;
+    }
+    if (ferror(arq_saida)) {
+        fprintf(stderr, "Erro ao escrever o arquivo.\n");
+        return -1;
+    }
+
     return 0;
 }
