@@ -37,21 +37,28 @@ unsigned int utf8_to_codepoint(unsigned char *bytes, int length) {
     return 0;  // valor inválido
 }
 
+// Codifica um número inteiro em varint e escreve os bytes resultantes no buffer
+int encode_varint(unsigned int value, unsigned char *buffer) {
+    int buffer_length = 0;
+
+    do {
+        buffer[buffer_length] = (unsigned char)(value & 0x7F);
+        value >>= 7;
+        
+        if (value != 0) {
+            buffer[buffer_length] |= 0x80;
+        }
+        
+        buffer_length++;
+    } while (value);
+
+    return buffer_length; // Retorna o número de bytes escritos
+}
+
 int utf2varint(FILE *arq_entrada, FILE *arq_saida){
-    // char linha[1024]; // Buffer para armazenar cada linha lida
-
-    // while (fgets(linha, sizeof(linha), arq_entrada) != NULL) {
-    //     // Processa a linha aqui, por enquanto, apenas imprimimos
-    //     printf("%s", linha);
-    // }
-
-    // // Se o loop terminou devido a um erro de leitura, tratamos isso
-    // if (ferror(arq_entrada)) {
-    //     fprintf(stderr, "Erro ao ler o arquivo.\n");
-    //     return -1; // Retorno de erro
-    // }
 
     unsigned char bytes[4];
+    unsigned char varint_buffer[5]; // Para armazenar o valor varint codificado
     int ch;
     while ((ch = fgetc(arq_entrada)) != EOF) {
         int length = utf8_char_length(ch);
@@ -71,15 +78,27 @@ int utf2varint(FILE *arq_entrada, FILE *arq_saida){
         }
 
         unsigned int codepoint = utf8_to_codepoint(bytes, length);
-        printf("Codepoint: U+%04X\n", codepoint);
+        int varint_length = encode_varint(codepoint, varint_buffer);
+
+        // Escreve a codificação varint no arquivo de saída
+        fwrite(varint_buffer, sizeof(unsigned char), varint_length, arq_saida);
+
+        // Continua imprimindo o codepoint e a codificação varint para a tela (pode ser removido se não for mais necessário)
+        printf("Codepoint: U+%04X - Varint: ", codepoint);
+        for (int i = 0; i < varint_length; i++) {
+            printf("%02X ", varint_buffer[i]);
+        }
+        printf("\n");
     }
 
     if (ferror(arq_entrada)) {
         fprintf(stderr, "Erro ao ler o arquivo.\n");
         return -1;
     }
-
-
+    if (ferror(arq_saida)) {
+        fprintf(stderr, "Erro ao escrever o arquivo.\n");
+        return -1;
+    }
     return 0; // Sucesso
 }
 

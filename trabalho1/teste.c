@@ -2,20 +2,19 @@
 #include <stdbool.h>
 #include "converte.h"
 
-void testeFuncao(FILE *arq){
 
-    FILE *saida = fopen("saida.txt", "w");
-    int t = utf2varint(arq, saida);
-    if (t==0){
-        printf("teste passou\n");
-    } else {
-        fprintf(stderr, "Teste Falhou\n");
+
+int main() {
+    FILE *arq_entrada = fopen("utf8_peq.txt", "rb");
+    FILE *arq_saida = fopen("saida_varint.bin", "wb");
+    if (!arq_entrada || !arq_saida) {
+        fprintf(stderr, "Erro ao abrir o arquivo.\n");
+        return 1;
     }
-}
 
-int main(void){
+    utf2varint(arq_entrada, arq_saida);
+    fclose(arq_entrada);
+    fclose(arq_saida);
 
-    FILE *arq = fopen("utf8_peq.txt", "r");
-    testeFuncao(arq);
     return 0;
 }
