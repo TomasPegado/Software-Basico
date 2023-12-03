@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
-#include <sys/mman.h>
-#include <unistd.h> // Para sysconf(_SC_PAGESIZE)
+#include <sys/mman.h> 
 #include "cria_func.h"
 
 typedef int (*func_ptr) (int x);

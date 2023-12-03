@@ -1,0 +1,50 @@
+1. Visão Geral
+Foi alcançado o objetivo de chamar uma função e ter um dos seus parâmetros fixados por meio da execução de um código de maquina, mas não conseguimos alterar dinamicamente a array do código de maquina para  poder usar o DescParam eficientemente. Depois que conseguimos fazer o programa rodar num caso base, onde criamos uma nova função que chama a função original, mas com um de seus parametros já fixos no código de máquina, não conseguimos adaptar a função cria_func para alterar dinamicamente a array do código a partir do DescParam sem quebrar a saída do programa.
+
+2. Componentes Principais do Código
+Inclusão de Cabeçalhos:
+
+stdint.h é usado para definir tipos inteiros de largura fixa, como intptr_t.
+
+Array codigo_base:
+
+É um array de unsigned char contendo instruções de máquina específicas para a arquitetura x86-64.
+As instruções são representadas em hexadecimal e correspondem a operações em assembly.
+Instruções de Máquina no Array:
+
+0x55, 0x48, 0x89, 0xe5: Instruções para preparar o stack frame.
+0xbe, 0x0a, 0x00, 0x00, 0x00: Move o valor 10 (0x0a) para o registrador %esi.
+0x48, 0xb8: Início da instrução para mover um valor de 64 bits para %rax.
+0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 espaço reservado para o endereço da função a ser chamada.
+0xff, 0xd0: Instrução call *%rax para chamar a função cujo endereço está em %rax.
+0xc9, 0xc3: Instruções leave e ret para finalizar a função.
+
+3. Funcionalidades da Função cria_func
+Cópia do Código de Máquina:
+
+memcpy é usado para copiar o array codigo_base para o array codigo fornecido como argumento. Este array codigo é onde o código de máquina final é armazenado.
+
+Limpeza do Cache:
+
+__builtin___clear_cache é uma função específica do compilador GNU C para limpar o cache de instruções. Isso garante que qualquer alteração feita no código de máquina seja reconhecida pelo processador. Não estávamos conseguindo rodar sem essa função
+
+Inserção do Endereço da Função:
+
+A segunda chamada memcpy insere o endereço da função (ponteiro f) no local apropriado no array codigo. Isso permite que a instrução call *%rax chame a função correta.
+
+
+4. Testes
+A seguir um teste executado com sucesso, onde botamos usamos a função mult e fixamos um dos seus parametros em 10 e chamamos um for na main para a nova funcao calcular a tabuada do 10.
+
+tomas@DesktopTomas:~/PUC/INF1018/Software-Basico/trabalho2$ ./teste
+Resultado: 0
+Resultado: 10
+Resultado: 20
+Resultado: 30
+Resultado: 40
+Resultado: 50
+Resultado: 60
+Resultado: 70
+Resultado: 80
+Resultado: 90
+Resultado: 100
