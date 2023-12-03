@@ -5,7 +5,7 @@
 #include <unistd.h> // Para sysconf(_SC_PAGESIZE)
 #include "cria_func.h"
 
-typedef int (*func_ptr) (int x, int y);
+typedef int (*func_ptr) (int x);
 
 int mult(int x, int y) {
   return x * y;
@@ -29,9 +29,12 @@ int main() {
 
     // Converter 'codigo' para um ponteiro de função e executar
     func_ptr func = (func_ptr)codigo;
-    int result = (func)(42, 10); // Espera-se que retorne 420
 
-    printf("Resultado: %d\n", result);
+    for (int i=0; i<11; i++){
+      int result = (func)(i); // tabela
+      printf("Resultado: %d\n", result);
+    }
+    
 
     return 0;
 }
